@@ -32,11 +32,11 @@ public class ResenaService {
         // PASO A: Llamar al microservicio de Usuarios
         try {
             webClientBuilder.build()
-                    .get() // Usamos el método GET
-                    .uri("http://localhost:8085/api/v0/usuarios/" + requestDTO.getUsuarioId()) // La ruta exacta de tu otro proyecto
-                    .retrieve() // Ejecuta la llamada
-                    .bodyToMono(Object.class) // Convertimos la respuesta
-                    .block(); // block() hace que el sistema espere la respuesta antes de seguir avanzando
+                    .get() // Se usa el método GET
+                    .uri("http://localhost:8085/api/v0/usuarios/" + requestDTO.getUsuarioId()) // La ruta del microservicio de Usuarios para obtener un usuario por ID
+                    .retrieve() // Ejecutamos la solicitud y esperamos la respuesta
+                    .bodyToMono(Object.class) // Convertimos la respuesta a un Mono de tipo Object (no nos importa el contenido, solo si existe o no)
+                    .block(); // block() hace que la llamada sea síncrona, esperando la respuesta antes de continuar
             
             log.info("Usuario ID {} validado correctamente en el microservicio de Usuarios", requestDTO.getUsuarioId());
 
@@ -140,7 +140,7 @@ public class ResenaService {
         log.info("Reseña con ID: {} eliminada de la base de datos", id);
     }
 
-    // Método auxiliar
+    // Método auxiliar para mapear de entidad a DTO
     private ResenaResponseDTO mapearADTO(Resena resena) {
         ResenaResponseDTO dto = new ResenaResponseDTO();
         dto.setId(resena.getId());

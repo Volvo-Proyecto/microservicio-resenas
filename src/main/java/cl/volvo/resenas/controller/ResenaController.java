@@ -14,14 +14,14 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v0/resenas") // Ruta principal: localhost:8082/resenas
+@RequestMapping("/api/v0/resenas") // Ruta principal: localhost:8086/resenas
 public class ResenaController {
 
     @Autowired
     private ResenaService resenaService;
 
-    // Endpoint para crear una reseña (POST)
-    @PostMapping
+    // Endpoint para crear: http://localhost:8086/api/v0/resenas/crear
+    @PostMapping("/crear")
     public ResponseEntity<ResenaResponseDTO> crearResena(@Valid @RequestBody ResenaRequestDTO requestDTO) {
         log.info("Petición REST recibida para crear reseña del usuario ID: {}", requestDTO.getUsuarioId());
         
@@ -31,8 +31,8 @@ public class ResenaController {
         return new ResponseEntity<>(nuevaResena, HttpStatus.CREATED);
     }
 
-    // Endpoint para obtener todas las reseñas (GET)
-    @GetMapping
+    // Endpoint para listar todas: http://localhost:8086/api/v0/resenas/listar
+    @GetMapping("/listar")
     public ResponseEntity<List<ResenaResponseDTO>> obtenerTodas() {
         log.info("Petición REST recibida para listar todas las reseñas");
         
@@ -40,9 +40,8 @@ public class ResenaController {
         return ResponseEntity.ok(resenas);
     }
 
-    // Endpoint para buscar todas las reseñas de un usuario específico (GET)
-    // Ejemplo: localhost:8082/resenas/usuario/1
-    @GetMapping("/usuario/{usuarioId}")
+    // Endpoint para buscar por usuario: http://localhost:8086/api/v0/resenas/listar/usuario/1
+    @GetMapping("/listar/usuario/{usuarioId}")
     public ResponseEntity<List<ResenaResponseDTO>> obtenerPorUsuario(@PathVariable Long usuarioId) {
         log.info("Petición REST recibida para listar reseñas del usuario ID: {}", usuarioId);
         
@@ -50,8 +49,8 @@ public class ResenaController {
         return ResponseEntity.ok(resenas);
     }
 
-    // Endpoint para actualizar una reseña (PUT)
-    @PutMapping("/{id}")
+    // Endpoint para actualizar: http://localhost:8086/api/v0/resenas/actualizar/1
+    @PutMapping("/actualizar/{id}")
     public ResponseEntity<ResenaResponseDTO> actualizarResena(
             @PathVariable Long id, 
             @Valid @RequestBody ResenaRequestDTO requestDTO) {
@@ -62,8 +61,8 @@ public class ResenaController {
         return ResponseEntity.ok(resenaActualizada);
     }
 
-    // Endpoint para eliminar una reseña (DELETE)
-    @DeleteMapping("/{id}")
+    // Endpoint para eliminar: http://localhost:8086/api/v0/resenas/eliminar/1
+    @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<Void> eliminarResena(@PathVariable Long id) {
         log.info("Petición REST recibida para eliminar reseña ID: {}", id);
         resenaService.eliminarResena(id);
