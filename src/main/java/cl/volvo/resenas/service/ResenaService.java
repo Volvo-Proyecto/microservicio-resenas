@@ -23,41 +23,40 @@ public class ResenaService {
     private ResenaRepository resenaRepository;
 
     @Autowired
-    private WebClient.Builder webClientBuilder;
+    private WebClient usuariowebClient;
+
+    @Autowired
+    private WebClient juegowebClient;
 
     // 1. Crear Reseña (CREATE)
     public ResenaResponseDTO crearResena(ResenaRequestDTO requestDTO) {
         log.info("Intentando crear reseña para el usuario ID: {}", requestDTO.getUsuarioId());
 
-        // PASO A: Llamar al microservicio de Usuarios
+        // PASO A: Llamar al microservicio de Usuarios 
         try {
-            webClientBuilder.build()
-                    .get() // Se usa el método GET
-                    .uri("http://localhost:8085/api/v0/usuarios/" + requestDTO.getUsuarioId()) // La ruta del microservicio de Usuarios para obtener un usuario por ID
-                    .retrieve() // Ejecutamos la solicitud y esperamos la respuesta
-                    .bodyToMono(Object.class) // Convertimos la respuesta a un Mono de tipo Object (no nos importa el contenido, solo si existe o no)
-                    .block(); // block() hace que la llamada sea síncrona, esperando la respuesta antes de continuar
+            usuariowebClient.get()
+                    .uri("/" + requestDTO.getUsuarioId()) // Queda como: /api/v1/usuarios/{id}
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .block();
             
             log.info("Usuario ID {} validado correctamente en el microservicio de Usuarios", requestDTO.getUsuarioId());
 
         } catch (WebClientResponseException.NotFound e) {
-            // Si el otro microservicio responde con un Error 404 (No Encontrado)
             log.error("El usuario con ID {} no existe.", requestDTO.getUsuarioId());
             throw new RuntimeException("No se puede crear la reseña: El usuario indicado no existe en el sistema.");
         } catch (Exception e) {
-            // Si el otro microservicio está apagado o hay un error de red
             log.error("Error de conexión con el microservicio de Usuarios: {}", e.getMessage());
             throw new RuntimeException("Error interno: No se pudo verificar la existencia del usuario.");
         }
 
-        // PASO B: Llamar al microservicio de Juegos
+        // PASO B: Llamar al microservicio de Juegos 
         try {
-            webClientBuilder.build()
-                    .get() 
-                    .uri("http://localhost:8083/api/v1/juegos/" + requestDTO.getJuegoId()) 
-                    .retrieve() 
-                    .bodyToMono(Object.class) 
-                    .block(); 
+            juegowebClient.get()
+                    .uri("/" + requestDTO.getJuegoId()) // Queda como: /api/v1/juegos/{id}
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .block();
             
             log.info("Juego ID {} validado correctamente en el microservicio de Juegos", requestDTO.getJuegoId());
 
@@ -74,7 +73,7 @@ public class ResenaService {
         resena.setComentario(requestDTO.getComentario());
         resena.setCalificacion(requestDTO.getCalificacion());
         resena.setUsuarioId(requestDTO.getUsuarioId());
-        resena.setJuegoId(requestDTO.getJuegoId()); // Agregamos el ID del juego a la base de datos
+        resena.setJuegoId(requestDTO.getJuegoId());
 
         Resena guardada = resenaRepository.save(resena);
         log.info("Reseña creada y guardada con éxito con ID: {}", guardada.getId());
@@ -108,18 +107,15 @@ public class ResenaService {
     public ResenaResponseDTO actualizarResena(Long id, ResenaRequestDTO requestDTO) {
         log.info("Actualizando reseña con ID: {}", id);
 
-        // Buscamos si la reseña existe
         Resena resenaExistente = resenaRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("No se pudo actualizar. La reseña con ID {} no existe.", id);
                     return new RuntimeException("Reseña no encontrada para actualizar");
                 });
 
-        // Solo actualizamos el comentario y la calificación (no tiene sentido cambiar al autor)
         resenaExistente.setComentario(requestDTO.getComentario());
         resenaExistente.setCalificacion(requestDTO.getCalificacion());
 
-        // Guardamos los cambios
         Resena guardada = resenaRepository.save(resenaExistente);
         log.info("Reseña ID: {} actualizada correctamente", id);
 
@@ -130,14 +126,13 @@ public class ResenaService {
     public void eliminarResena(Long id) {
         log.info("Iniciando eliminación de reseña con ID: {}", id);
 
-        // Verificamos si existe
         if (!resenaRepository.existsById(id)) {
             log.error("No se puede eliminar. La reseña con ID {} no existe.", id);
             throw new RuntimeException("Reseña no encontrada para eliminar");
         }
 
         resenaRepository.deleteById(id);
-        log.info("Reseña con ID: {} eliminada de la base de datos", id);
+        log.info("Reseña con ID: {} eliminado de la base de datos", id);
     }
 
     // Método auxiliar para mapear de entidad a DTO
@@ -147,7 +142,7 @@ public class ResenaService {
         dto.setComentario(resena.getComentario());
         dto.setCalificacion(resena.getCalificacion());
         dto.setUsuarioId(resena.getUsuarioId());
-        dto.setJuegoId(resena.getJuegoId()); // <-- ESTA LÍNEA ES LA NUEVA
+        dto.setJuegoId(resena.getJuegoId());
         dto.setFechaCreacion(resena.getFechaCreacion());
         return dto;
     }
