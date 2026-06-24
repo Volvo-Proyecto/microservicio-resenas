@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: resenas
+  profiles:
+    active: dev
+
+# Configuración de Swagger / OpenAPI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
